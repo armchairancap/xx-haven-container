@@ -1,88 +1,227 @@
-- [Speakeasy container image](#speakeasy-container-image)
-  - [About Speakeasy](#about-speakeasy)
-    - [Speakeasy Web server](#speakeasy-web-server)
-  - [Run or build \& run Speakeasy](#run-or-build--run-speakeasy)
-    - [Run](#run)
-    - [Build and run](#build-and-run)
-  - [Deploy HTTPS reverse proxy](#deploy-https-reverse-proxy)
-  - [Version information](#version-information)
+- [xx Network Haven (formerly Speakeasy) container image](#xx-network-haven-formerly-speakeasy-container-image)
+  - [About Haven](#about-haven)
+    - [Haven Web application](#haven-web-application)
+  - [Quick start for Public IPs with Let's Encrypt](#quick-start-for-public-ips-with-lets-encrypt)
+  - [Slow start](#slow-start)
+    - [Run Haven from prebuilt image](#run-haven-from-prebuilt-image)
+    - [Build and run own image](#build-and-run-own-image)
+  - [Deploy a reverse HTTPS proxy](#deploy-a-reverse-https-proxy)
+  - [Deploy with Docker Compose](#deploy-with-docker-compose)
+  - [Version and other container information](#version-and-other-container-information)
+  - [License](#license)
 
-# Speakeasy container image
+# xx Network Haven (formerly Speakeasy) container image
 
-## About Speakeasy
+## About Haven
 
-[Speakeasy](https://www.speakeasy.tech) is a privacy-first Web client for xx Network.
+[Haven](https://www.speakeasy.tech) is a privacy-first Web client for xx Network.
 
-It uses WASM and xxDK to access random gateways on the cMix network. It provides unique online identities, quantum-secure encrypted messaging and other features. See the Web site for more.
+It uses WASM and xxDK to access random gateways on the cMix network. It provides unique online identities, quantum-resistant encrypted messaging and other features. See the Web site for more.
 
-### Speakeasy Web server
+### Haven Web application
 
-A Web server is required to download the Speakeasy application code. A site running it - such as [https://www.speakeasy.tech](https://www.speakeasy.tech) - may collect client IP addresses (which merely identifies the address as a Speakeasy user) or, if compromised, even serve malicious code (this is unlikely, but not impossible, to happen on the official Speakeasy site).
+A Web server is required to download Haven application code. The site that serves it - such as [https://www.speakeasy.tech](https://www.speakeasy.tech) - may collect client IP addresses (which merely identifies the address as a Haven user or, if compromised, even serve malicious code - unlikely, but not impossible, to happen on the official Haven site).
 
-The Speakeasy Web server is not involved in forwarding or encrypting of Speakeasy data: that happens exclusively between the Web client and the xx Network gateways to which the client (browser) connects directly. 
+Haven Web server is not involved in forwarding or encrypting client data: that happens exclusively on the client (in browser).
 
-Because of that a Speakeasy server running clean code cannot determine the content of messages, or even parties who exchange them. Why? 
+Haven server running clean code cannot determine the content of messages or even who are the parties who exchange messages:
 
-Because chat participants can access any Speakeasy Web server (it doesn't have to be the same server) and even if they didn't (if they used the same Speakeasy Web server, that is), it would be impossible to detect and prove these clients are exchanging messages. Remember - Speakeasy messages aren't routed via the Web server. But, two clients accessing a Speakeasy Web server at the same tells us they may be communicating, so there's always some advantage to running your server.
+- Messages are not exchanged on the Haven Web server
+- Messages are created, routed through xxNetwork's cMix protocol, and received directly on the Web client
 
-In light of that, the main objectives of creating this Speakeasy container image are:
+Each user can use their own Haven server - it is not necessary to access the common server. The only tip regarding this is when you get a "join channel" link, you can optionally modify it to replace the FQDN with your own FQDN, although it should work without that step.
 
-- Make it easy to run own Speakeasy server built from the source code
-- Removes the risk of the server operator recording your IP address
-- Removes the risk of using malicious application code
-- Make Speakeasy Web app easily accessible from internal or external portals
+This Haven container makes it easier to:
 
-Typical deployment scenarios:
+- Run own Haven server
+- Removes the risk of the server operator recording your IP address (which merely identifies you as a user, not your cMix identity)
+- Removes the risk of malicious (modified or hacked) application code on the server
+- Makes Haven Web app easily accessible from internal or external application portals
 
-- Small (1GiB) cloud VM with Docker running Speakeasy container, reverse-proxied by Cloudflare or another container (NGINX, Traefik, Caddy, etc.) on the same VM
-- Speakeasy and HTTPS proxy container on your desktop, notebook or home server
+Some deployment scenarios:
 
-Setting up a reverse HTTPS proxy is out of scope as it requires no Speakeasy-specific steps: just forward HTTPS to whatever port Speakeasy container is exposed at.
+- Small (1GiB RAM) cloud VM with Docker running Haven container, reverse-proxied by Cloudflare or another container (NGINX, Traefik, Caddy, etc.) on the same VM
+- Haven and HTTPS proxy container on your desktop, notebook or home server
+- Home-hosted Haven opened to friends or colleagues over Tailscale network
 
-## Run or build & run Speakeasy
+Reverse HTTPS proxy requires no Haven-specific steps: just forward HTTPS to whatever port Haven container is exposed at.
 
-Note: use `run -d -p` to run a container in the background.
+## Quick start for Public IPs with Let's Encrypt
 
-Foreground mode (below) can be exited with CTRL+C.
-
-### Run
-
-It is recommended to build your own image from this repository's Dockerfile (see further below). If you just want to test it, you may use my [Docker Hub image](https://hub.docker.com/r/armchairancap/xx-speakeasy-container/tags). Use a port available on your system, whether it's 8080 or other.
-
-```sh
-docker run -it --rm -p 0.0.0.0:8080:80 --name speakeasy docker.io/armchairancap/xx-speakeasy-container:latest npm run start
-
-```
-
-Using this command should start Speakeasy container and expose its service at http://localhost:8080. You still need a reverse HTTPS proxy in front of it in order to use it!
-
-### Build and run
-
-If port 8080 on your Docker host is not free, change the port with something like `-p 31080:80` or `-p 127.0.0.2:80:80` (localhost example) or try one of other Docker tricks from the Internet.
-
-Build and run at port 8080:
+For this you need a public IP address, DNS A record for FQDN.
 
 ```sh
-docker build -t speakeasy:latest .
-docker run -it --rm -p 0.0.0.0:8080:80 --name speakeasy speakeasy:latest npm run start
-
+git clone https://github.com/armchairancap/xx-haven-container
+cd xx-haven-container
+vi docker-compose.yml
 ```
 
-Now you should be able to see the Speakeasy Web server's home page when you visit http://localhost:8080. You still need a reverse HTTPS proxy in front of it in order to use it!
+- Create a DNS A record for your FQDN such as haven.something.io
+- In `docker-compose.yml` replace YOUR@EMAIL.COM and YO.UR.TLD with your values
+- For ARM64, change the Haven image URL from `ghcr.io/armchairancap/haven:latest` to `ghcr.io/armchairancap/haven-arm64:latest`. Currently I don't build multi-arch images on GHCR
+- Open firewall ports tcp/80 (needed for Let's Encrypt) and tcp/443 to the world
 
-## Deploy HTTPS reverse proxy
+```sh
+docker compose up
+```
 
-Without HTTPS in front of Speakeasy you will see the home page, but Speakeasy will not work for messaging. You need to access Speakeasy through HTTPS.
+Visit your site at https://FQDN.
 
-There is nothing Speakeasy-specific about this, just remember to forward port on your your HTTPS proxy to whatever port you chose here (e.g. 8080).
+Foreground mode (used below) can be exited with `CTRL+C`.
 
-Examples:
+Once you get everything (including HTTPS reverse proxy) in order, you may add `-d` to `docker compose up` run Haven in the background.
 
-- [Caddy automatic HTTPS with Let's Encrypt](https://caddyserver.com/docs/automatic-https)
-- [Cloudflare TLS reverse proxy](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes)
+## Slow start 
 
-## Version information
+If you want to run a public instance, use Quick Start (above). 
 
-The Docker Hub images are built for `amd64` and `arm64` and downloading `:latest` gets the right architecture for your system (whether it's ARM64 or x86_64).
+If you want to run a private instance or build your own, read on.
 
-The Docker Hub images may not be the latest version, so it is recommended to build your own version (which comes from [here](https://git.xx.network/elixxir/speakeasy-web)) for proper production use.
+### Run Haven from prebuilt image
+
+It is recommended to build your own image from this repository's Dockerfile (see further below), but you may use [Github Container Registry images](ghcr.io/armchairancap/haven:latest) built by me. 
+
+Use a service port available on your system and change the first 3000 to another port if you like.
+
+```sh
+docker run -it --rm -p 0.0.0.0:3000:3000 --name haven ghcr.io/armchairancap/haven:latest npm run start
+# use haven-arm64:latest for ARM64 hosts
+```
+
+That should start Haven container and expose its service at [http://localhost:3000](http://localhost:3000) (not *https*).
+
+```sh
+> speakeasy-web@0.3.4 start
+> next start 
+
+ready - started server on 0.0.0.0:3000, url: http://localhost:3000
+```
+
+Don't click on that link because you'll get nothing. Go to http://address:port from your Docker run command. I this example the command exposed Haven on the port 8080:
+
+![Running Haven container](./images/running-container.png)
+
+If you're stuck, make sure your browser didn't redirect you to **https**:// instead, and that the port is correct.
+
+Although you can now access Haven, you **still need a reverse HTTPS proxy in front of it** in order to use it! It won't work over HTTP.
+
+### Build and run own image
+
+The source is over 1 GB large and the image over 1 GB. You may need more than 5 GB of free disk space to build.
+
+The Speakeasy source code repository has its own Dockerfile. Clone the source code, and run `docker build .` to build it. 
+
+After cloning the repo, go to its directory and build.
+
+```sh
+git clone https://git.xx.network/elixxir/speakeasy-web && cd speakeasy-web
+docker build -t haven:latest .
+docker run -it --rm -p 0.0.0.0:3000:3000 --name haven haven:latest npm run start
+```
+
+Alternatively, you may reference this older [Dockerfile](https://github.com/armchairancap/xx-haven-container/commit/966c6293592af093f40065e5c5c34c0100ddb833#diff-dd2c0eb6ea5cfc6c4bd4eac30934e2d5746747af48fef6da689e85b752f39557) that I used to use before, but keep in mind that it was hard-coded to use port 80 (instead of the common 3000). Of course, you may change it as you see fit.
+
+Now you should be able to see the Haven Web server's home page when you visit http://localhost:3000. You still **need a reverse HTTPS proxy** in front of it in order to use it.
+
+Once you get everything (including HTTPS reverse proxy) in order, you may add `-d` to `docker run` to run the container in the background.
+
+## Deploy a reverse HTTPS proxy
+
+Without HTTPS in front of Haven you will see the home page, but Haven will not work for messaging. You need to access Haven through HTTPS.
+
+There is nothing Haven-specific about this, just remember to forward port on your your HTTPS proxy to whatever port you chose here (e.g. 3000).
+
+Some popular approaches:
+
+- [Caddy HTTPS with Let's Encrypt](https://caddyserver.com/docs/automatic-https)
+- [Cloudflare HTTPS with Let's Encrypt](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes)
+- [Tailscale HTTPS with Let's Encrypt](https://tailscale.com/kb/1153/enabling-https)
+
+## Deploy with Docker Compose
+
+To run a Haven container using image `haven:dev` exposed at `http://localhost:38080`:
+
+```yaml
+services:
+  haven:
+    image: haven:dev
+    container_name: "haven"
+    entrypoint: ["npm", "run", "start"]
+    ports:
+      - "38080:3000"
+```
+
+HTTPS reverse proxy with TLS that forwards `https://hostname:443` (or similar) to `http://localhost:38080` (or whatever you chose) is the last remaining step. 
+
+What follows is the same thing as Quick Start (at the top), again using the default port 3000 to keep it consistent with other examples and Node .
+
+Replace YOUR@EMAIL.COM and YO.UR.TLD with something that works for you.
+
+```yaml
+version: "3.3"
+services:
+  reverse-proxy:
+    image: traefik:v2.11
+    container_name: "traefik"
+    command:
+      - "--api.insecure=false"
+      - "--api.dashboard=false"
+      - "--api.debug=false"
+      - "--providers.docker=true"
+      - "--log.LEVEL=INFO"
+      - "--entryPoints.web.address=:80"
+      - "--entryPoints.websecure.address=:443"
+      - "--providers.docker.exposedbydefault=false"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=YOUR@EMAIL.COM"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "443:443"
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  node-server:
+    image: ghcr.io/armchairancap/haven:latest
+    # image: ghcr.io/armchairancap/haven-arm64:latest # use this for ARM64
+    container_name: "node-server"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.node-server.rule=Host(`YO.UR.TLD`)"
+      - "traefik.http.routers.node-server.entrypoints=websecure"
+      - "traefik.http.routers.node-server.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.redirs.rule=hostregexp(`{host:.+}`)"
+      - "traefik.http.routers.redirs.entrypoints=web"
+      - "traefik.http.routers.redirs.middlewares=redirect-to-https"
+    entrypoint: ["npm", "run", "start"]
+    ports:
+      - "3000:3000"
+```
+
+- Your public (Internet) firewall must allow tcp/80 and tcp/443 to Traefik. tcp/8080 must not be open to Internet clients (that's Traefik admin port) and tcp/3080 either (HTTP address of Haven container).
+- YO.UR.TLD must have a DNS A record for the Haven URL.
+- Traefik will use its Let's Encrypt integration to automatically obtain a TLS certificate for YO.UR.TLD. Your TLS certificate will be stored in ./letsencrypt.
+- Clients trying to access Haven at http://YO.UR.TLD will be redirected to https://YO.UR.TLD by Traefik, and from there Traefik will forward requests to http://node-server:3000 (Haven container).
+
+Basic or other authentication can be added to limit access to authenticated users. See the Traefik v2 documentation for more.
+
+## Version and other container information
+
+Images tagged `:latest` are built from the upstream repository's `main` branch. Other images may be available as well - for example images built from the branch `dev` would be tagged `:dev`.
+
+- x86_64: `haven:latest`
+- ARM64 build: `haven-arm64:latest`
+
+My Docker images may get out of date, so it is recommended to build your own version (which comes from [here](https://git.xx.network/elixxir/speakeasy-web)) for proper production use. There's a working Dockerfile in the source code repository. Or see the older Docker example I used before.
+
+The upstream repository may have some vulnerabilities which I haven't attempted to fix (why, because I could inadvertently introduce new ones). Haven executes on the client and it is read-only on the server, so the risk of NPM package vulnerabilities should be extremely low - especially if you run own instance.
+
+What I did modify is packages*.json and node.config.json to decrease the size of my Haven container image compared to what you'd get from Dockerfile from the source code repository. I also ran `npm audit fix` to auto-fix some vulnerabilities that NPM can fix on its own, although that probably doesn't help in any way.
+
+## License
+
+- For Speakeasy / Haven, please refer to upstream license
+- This repo uses the MIT License
