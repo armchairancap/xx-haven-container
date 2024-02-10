@@ -1,0 +1,39 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAMES: "haven"
+
+jobs:
+
+  build:
+
+    runs-on: node:16
+    container: registry.hub.docker.com/library/node:16
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2   
+    
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag haven:dev
+
+    - name: Build, tag, sign, and push the container images to GitHub Container Registry
+      run: |
+        haven_version=$(git describe --tags --match '*.*' --abbrev=10)
+        names=$(echo "${{ env.IMAGE_NAMES }}" | tr '\n' ' ')
+        for name in $names; do
+          image=ghcr.io/armchairancap/${name}:${haven_version}
+            docker build -t $image --build-arg HAVEN_VERSION=${haven_version} --target ${name} .
+            docker push $image
+            docker tag $image ghcr.io/armchairancap/${name}:latest
+            docker push ghcr.io/thinkparq/${name}:latest
+
+        done
