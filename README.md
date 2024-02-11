@@ -9,6 +9,7 @@
   - [Deploy with Docker Compose](#deploy-with-docker-compose)
     - [Public IP with FQDN](#public-ip-with-fqdn)
     - [Internal (LAN) IP with internal hostname or localhost](#internal-lan-ip-with-internal-hostname-or-localhost)
+    - [Haven as Hiden Service on .onion network](#haven-as-hiden-service-on-onion-network)
   - [Version and other container information](#version-and-other-container-information)
   - [License](#license)
 
@@ -267,6 +268,18 @@ You may see something like this:
 As the TLS certificate is signed by a Caddy CA generated on the fly, it will show as insecure unless you import both the Caddy CA file(s) and the certificate to make them trusted. See the Caddy documentation and community information for more. You don't *need* a valid & trusted TLS certificate for localhost, but on LAN hosts it would be better to have one.
 
 Once you get everything (including HTTPS reverse proxy) in order, you may add `-d` to the Docker command to run in the background.
+
+### Haven as Hiden Service on .onion network
+
+Before you waste hours on this, remember that Tor browser cannot use Haven/Speakeasy because WASM isn't built in. *If* you're thinking about using Tor, forget about it. But you can use Haven on .onion from another browser connected through a Socks5 proxy, for example.
+
+For .onion we'd likely use a self-signed CA and host TLS certificate, but there's nothing wrong with using just HTTP for `.onion` sites.
+
+Maybe a self-generated TLS could contain some data that would prove it was created by a trusted person, but otherwise there's no difference between using HTTPS with a self-signed TLS certificate and HTTPS on Tor.
+
+This hasn't been tested, but you could reuse the example for LAN, just change Caddyfile to bind all interfaces including your .onion name, and do not open Internet or LAN firewall ports since access would happen over .onion network.
+
+In Tor configuration you may need to set HiddenServicePort (:80 and/or :443) to expose it on .onion address and tune other options.
 
 ## Version and other container information
 
