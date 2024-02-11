@@ -224,8 +224,9 @@ You can use localhost or some LAN host. For TLS (required) you need a CA-issued 
 From the [Caddy documentation](https://caddyserver.com/docs/running#docker-compose), here's how we can use `docker compose cp` to copy Caddy CA-signed certificate to your Ubuntu host. See the link for the browser part.
 
 ```sh
+# docker compose cp $CADDY_CONTAINER_NAME:/path/to/file
 docker compose cp \
-    caddy:/data/caddy/pki/authorities/local/root.crt \
+    reverse-proxy:/data/caddy/pki/authorities/local/root.crt \
     /usr/local/share/ca-certificates/root.crt \
   && sudo update-ca-certificates
 ```
@@ -273,7 +274,7 @@ Once you get everything (including HTTPS reverse proxy) in order, you may add `-
 
 ### Haven as Hidden Service on the Tor network
 
-Before you waste hours on doing this, remember that Tor browser cannot use Haven/Speakeasy because WASM isn't built in. *If* you're thinking about using Tor Browser, forget about it. But you can use Haven on from a WASM-enabled browser connected to the Tor network through a Socks5 proxy, for example. If you want to hide that you're using Haven, you also need to ensure your browser's DNS requests are hidden and Caddy's traffic is disabled (such as [OCSP stapling](https://caddyserver.com/docs/caddyfile/options#ocsp-stapling) and more).
+Before you waste hours on doing this, remember that Tor browser cannot use Haven/Speakeasy because WASM isn't built in. *If* you're thinking about using Tor Browser, forget about it. But you can use Haven on from a WASM-enabled browser connected to the Tor network through a Socks5 proxy, for example. If you want to hide that you're using Haven, you also need to ensure your browser's DNS requests are hidden and Caddy's traffic is disabled (such as [OCSP stapling](https://caddyserver.com/docs/caddyfile/options#ocsp-stapling), use `local_certs` and more).
 
 For .onion domains we'd likely use a self-signed CA and (of course) self-signed host TLS certificate.
 
