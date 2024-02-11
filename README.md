@@ -258,14 +258,13 @@ services:
       - "3000:3000"
 ```
 
-Our Caddyfile:
+Caddyfile from this repository's root directory:
 
 ```raw
 https://localhost {
     reverse_proxy haven-web:3000
 }
 ```
-
 
 This Caddy example will make Haven accessible from `https://localhost` (Caddy proxy).
 
