@@ -260,6 +260,12 @@ This Caddy example will make Haven accessible from `https://localhost` (Caddy pr
 docker-compose -f docker-compose-localhost.yml up
 ```
 
+You may see something like this:
+
+![Running Haven container on LAN](./images/running-container-lan.png)
+
+As the TLS certificate is signed by a Caddy CA generated on the fly, it will show as insecure unless you import both the Caddy CA file(s) and the certificate to make them trusted. See the Caddy documentation and community information for more. You don't *need* a trusted TSL certificate for localhost, but on LAN it would be a preferred to have one.
+
 Once you get everything (including HTTPS reverse proxy) in order, you may add `-d` to the Docker command to run in the background.
 
 ## Version and other container information
