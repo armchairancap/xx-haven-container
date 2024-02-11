@@ -258,6 +258,15 @@ services:
       - "3000:3000"
 ```
 
+Our Caddyfile:
+
+```raw
+https://localhost {
+    reverse_proxy haven-web:3000
+}
+```
+
+
 This Caddy example will make Haven accessible from `https://localhost` (Caddy proxy).
 
 ```sh
@@ -283,7 +292,7 @@ Maybe a self-generated TLS could contain some data that would prove it was creat
 You could reuse the example for LAN, just change Caddyfile to bind all interfaces including your .onion name, and do not open Internet or LAN firewall ports as access is allowed only through the Tor network. Caddyfile for a Tor Hidden Service would look similar to this:
 
 ```raw
-127.0.0.1:443 {
+https://127.0.0.1:443 {
   proxy haven-web:3000
 }
 ```
