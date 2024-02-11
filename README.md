@@ -7,6 +7,8 @@
     - [Build and run own image](#build-and-run-own-image)
   - [Deploy a reverse HTTPS proxy](#deploy-a-reverse-https-proxy)
   - [Deploy with Docker Compose](#deploy-with-docker-compose)
+    - [Public IP with FQDN](#public-ip-with-fqdn)
+    - [Internal (LAN) IP with internal hostname or localhost](#internal-lan-ip-with-internal-hostname-or-localhost)
   - [Version and other container information](#version-and-other-container-information)
   - [License](#license)
 
@@ -139,6 +141,8 @@ Some popular approaches:
 
 ## Deploy with Docker Compose
 
+### Public IP with FQDN
+
 To run a Haven container using image `haven:dev` exposed at `http://localhost:38080`:
 
 ```yaml
@@ -207,6 +211,56 @@ services:
 - Clients trying to access Haven at http://YO.UR.TLD will be redirected to https://YO.UR.TLD by Traefik, and from there Traefik will forward requests to http://node-server:3000 (Haven container).
 
 Basic or other authentication can be added to limit access to authenticated users. See the Traefik v2 documentation for more.
+
+Once you get everything (including HTTPS reverse proxy) in order, you may add `-d` to `docker compose up` run Haven in the background.
+
+### Internal (LAN) IP with internal hostname or localhost
+
+You can use localhost or some LAN host. For TLS (required) you need a CA-issued or self-signed TLS certificate with DNS resolution. You can use non-trusted, but you can also check the documentation for your OS on how to add this TLS to your OS and browser.
+
+From the [Caddy documentation](https://caddyserver.com/docs/running#docker-compose), here's how we can use `docker compose cp` to copy Caddy CA-signed certificate to your Ubuntu host. See the link for the browser part.
+
+```sh
+docker compose cp \
+    caddy:/data/caddy/pki/authorities/local/root.crt \
+    /usr/local/share/ca-certificates/root.crt \
+  && sudo update-ca-certificates
+```
+
+Or you could create them using your existing CA and copy them to the container. Either way, that's out of scope so let's move on.
+
+You may use docker-compose-localhost.yml and Caddyfile from the repo root for this:
+
+```yaml
+version: "3.3"
+services:
+  reverse-proxy:
+    image: caddy
+    container_name: "caddy"
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - "./caddy_data:/data"
+      - "./caddy_config:/config"
+      - "./Caddyfile:/etc/caddy/Caddyfile"
+  haven-web:
+    image: ghcr.io/armchairancap/haven:latest
+    # image: ghcr.io/armchairancap/haven-arm64:latest # use this for ARM64
+    container_name: "node-server"
+    entrypoint: ["npm", "run", "start"]
+    ports:
+      - "3000:3000"
+```
+
+This Caddy example will make Haven accessible from `https://localhost` (Caddy proxy).
+
+```sh
+docker-compose -f docker-compose-localhost.yml up
+```
+
+Once you get everything (including HTTPS reverse proxy) in order, you may add `-d` to the Docker command to run in the background.
 
 ## Version and other container information
 

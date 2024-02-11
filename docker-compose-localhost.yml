@@ -1,0 +1,21 @@
+version: "3.3"
+services:
+  reverse-proxy:
+    image: caddy
+    container_name: "caddy"
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - "./caddy_data:/data"
+      - "./caddy_config:/config"
+      - "./Caddyfile:/etc/caddy/Caddyfile"
+  haven-web:
+    image: ghcr.io/armchairancap/haven:latest
+    # image: ghcr.io/armchairancap/haven-arm64:latest # use this for ARM64
+    container_name: "node-server"
+    entrypoint: ["npm", "run", "start"]
+    ports:
+      - "3000:3000"
+
