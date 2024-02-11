@@ -100,7 +100,9 @@ That should start Haven container and expose its service at [http://localhost:30
 ready - started server on 0.0.0.0:3000, url: http://localhost:3000
 ```
 
-Don't click on that link because you'll get nothing. Go to http://address:port from your Docker run command. I this example the command exposed Haven on the port 8080:
+Don't click on that link because you may get nothing. Go to http://address:port from your Docker run command. Coincidentally it is the correct link because the example exposes Haven on the default NodeJS port (3000).
+
+I this example the command exposed Haven on the port 8080:
 
 ![Running Haven container](./images/running-container.png)
 
