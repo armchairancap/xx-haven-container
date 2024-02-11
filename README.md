@@ -9,7 +9,7 @@
   - [Deploy with Docker Compose](#deploy-with-docker-compose)
     - [Public IP with FQDN](#public-ip-with-fqdn)
     - [Internal (LAN) IP with internal hostname or localhost](#internal-lan-ip-with-internal-hostname-or-localhost)
-    - [Haven as Hiden Service on .onion network](#haven-as-hiden-service-on-onion-network)
+    - [Haven as Hidden Service on the Tor network](#haven-as-hidden-service-on-the-tor-network)
   - [Version and other container information](#version-and-other-container-information)
   - [License](#license)
 
@@ -269,9 +269,9 @@ As the TLS certificate is signed by a Caddy CA generated on the fly, it will sho
 
 Once you get everything (including HTTPS reverse proxy) in order, you may add `-d` to the Docker command to run in the background.
 
-### Haven as Hiden Service on .onion network
+### Haven as Hidden Service on the Tor network
 
-Before you waste hours on this, remember that Tor browser cannot use Haven/Speakeasy because WASM isn't built in. *If* you're thinking about using Tor, forget about it. But you can use Haven on .onion from another browser connected through a Socks5 proxy, for example.
+Before you waste hours on this, remember that Tor browser cannot use Haven/Speakeasy because WASM isn't built in. *If* you're thinking about using Tor, forget about it. But you can use Haven on .onion from another browser connected through a Socks5 proxy, for example. If you want to hide that you're using Haven, you also need to ensure your DNS requests are hidden.
 
 For .onion we'd likely use a self-signed CA and host TLS certificate, but there's nothing wrong with using just HTTP for `.onion` sites.
 
@@ -279,7 +279,7 @@ Maybe a self-generated TLS could contain some data that would prove it was creat
 
 This hasn't been tested, but you could reuse the example for LAN, just change Caddyfile to bind all interfaces including your .onion name, and do not open Internet or LAN firewall ports since access would happen over .onion network.
 
-In Tor configuration you may need to set HiddenServicePort (:80 and/or :443) to expose it on .onion address and tune other options.
+In Tor configuration you may need to set HiddenServicePort (:80 and/or :443) to expose it as an .onion site on the Tor network and tune other options.
 
 ## Version and other container information
 
