@@ -273,15 +273,26 @@ Once you get everything (including HTTPS reverse proxy) in order, you may add `-
 
 ### Haven as Hidden Service on the Tor network
 
-Before you waste hours on this, remember that Tor browser cannot use Haven/Speakeasy because WASM isn't built in. *If* you're thinking about using Tor, forget about it. But you can use Haven on .onion from another browser connected through a Socks5 proxy, for example. If you want to hide that you're using Haven, you also need to ensure your DNS requests are hidden.
+Before you waste hours on doing this, remember that Tor browser cannot use Haven/Speakeasy because WASM isn't built in. *If* you're thinking about using Tor Browser, forget about it. But you can use Haven on from a WASM-enabled browser connected to the Tor network through a Socks5 proxy, for example. If you want to hide that you're using Haven, you also need to ensure your browser's DNS requests are hidden and Caddy's traffic is disabled (such as [OCSP stapling](https://caddyserver.com/docs/caddyfile/options#ocsp-stapling) and more).
 
-For .onion we'd likely use a self-signed CA and host TLS certificate, but there's nothing wrong with using just HTTP for `.onion` sites.
+For .onion domains we'd likely use a self-signed CA and (of course) self-signed host TLS certificate.
 
 Maybe a self-generated TLS could contain some data that would prove it was created by a trusted person, but otherwise there's no difference between using HTTPS with a self-signed TLS certificate and HTTPS on Tor.
 
-This hasn't been tested, but you could reuse the example for LAN, just change Caddyfile to bind all interfaces including your .onion name, and do not open Internet or LAN firewall ports since access would happen over .onion network.
+You could reuse the example for LAN, just change Caddyfile to bind all interfaces including your .onion name, and do not open Internet or LAN firewall ports as access is allowed only through the Tor network. Caddyfile for a Tor Hidden Service would look similar to this:
 
-In Tor configuration you may need to set HiddenServicePort (:80 and/or :443) to expose it as an .onion site on the Tor network and tune other options.
+```raw
+127.0.0.1:443 {
+  proxy haven-web:3000
+}
+```
+
+In your Tor configuration file you may need to set HiddenServicePort (your.adddress.onion:443) to expose Caddy reverse proxy's service port. For example, with HTTPS we could have something like (Tor) HiddenServicePort 443 => (Caddy as Tor Hidden service) 127.0.0.1:443 => (Haven) haven-web:3000.
+
+```raw
+HiddenServiceVersion 3
+HiddenServicePort 443 127.0.0.1:443
+```
 
 ## Version and other container information
 
