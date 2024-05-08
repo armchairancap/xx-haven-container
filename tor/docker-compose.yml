@@ -1,0 +1,39 @@
+services:
+  reverse-proxy:
+    image: caddy
+    container_name: "caddy"
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - "./caddy_data:/data"
+      - "./caddy_config:/config"
+      - "./Caddyfile:/etc/caddy/Caddyfile"  
+  haven-web:
+    image: ghcr.io/armchairancap/haven:latest
+    container_name: "haven-web"
+    entrypoint: ["npm", "run", "start"]
+    ports:
+      - "3000:3000"
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./tor-docs:/usr/share/nginx/html
+    depends_on:
+      - tor
+    networks:
+      - tor_network
+  tor:
+    image: alpine:latest
+    command: sh -c "apk update && apk add tor && chmod 700 /var/lib/tor/hidden_service && (cat /var/lib/tor/hidden_service/hostname || echo 'Hostname not available.') && tor -f /etc/tor/torrc"
+    volumes:
+      - ./tor-config:/etc/tor:rw
+      - ./tor-service:/var/lib/tor/hidden_service:rw
+    networks:
+      - tor_network
+    stop_grace_period: 1m
+
+networks:
+  tor_network:
+        

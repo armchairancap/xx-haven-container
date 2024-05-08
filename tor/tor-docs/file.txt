@@ -1,0 +1,6 @@
+Some content...
+
+To generate a hard-to-guess random file name, try:
+
+openssl rand -hex 64
+

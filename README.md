@@ -10,6 +10,8 @@
     - [Public IP with FQDN](#public-ip-with-fqdn)
     - [Internal (LAN) IP with internal hostname or localhost](#internal-lan-ip-with-internal-hostname-or-localhost)
     - [Haven as Hidden Service on the Tor network](#haven-as-hidden-service-on-the-tor-network)
+      - [Caddy](#caddy)
+      - [Traefik](#traefik)
   - [Version and other container information](#version-and-other-container-information)
   - [License](#license)
 
@@ -124,7 +126,7 @@ docker build -t haven:latest .
 docker run -it --rm -p 0.0.0.0:3000:3000 --name haven haven:latest npm run start
 ```
 
-Alternatively, you may reference this older [Dockerfile](https://github.com/armchairancap/xx-haven-container/commit/966c6293592af093f40065e5c5c34c0100ddb833#diff-dd2c0eb6ea5cfc6c4bd4eac30934e2d5746747af48fef6da689e85b752f39557) that I used to use before, but keep in mind that it was hard-coded to use port 80 (instead of the common 3000). Of course, you may change it as you see fit.
+Alternatively, you may reference this older [Dockerfile](https://github.com/armchairancap/xx-haven-container/commit/966c6293592af093f40065e5c5c34c0100ddb833#diff-dd2c0eb6ea5cfc6c4bd4eac30934e2d5746747af48fef6da689e85b752f39557) that I used to use before, but keep in mind that it was hard-coded to use port 80 (instead of the common 3000), so adjust it to work on port 3000 (`docker run -it --rm -p 0.0.0.0:3000:80 ...`) (or adjust configs below to forward to haven-web on port 80). Of course, you may also change it any way you want.
 
 Now you should be able to see the Haven Web server's home page when you visit http://localhost:3000. You still **need a reverse HTTPS proxy** in front of it in order to use it.
 
@@ -280,13 +282,27 @@ As the TLS certificate is signed by a Caddy CA generated on the fly, it will sho
 
 Once you get everything (including HTTPS reverse proxy) in order, you may add `-d` to the Docker command to run in the background.
 
+To use Traefik with self-issued TLS on localhost, simply replace the haven-web FQDN with `localhost`.
+
+![Running Haven container on localhost with Traefik](./images/running-container-traefik-localhost-cert.png)
+
 ### Haven as Hidden Service on the Tor network
 
-Before you waste hours on doing this, remember that Tor browser cannot use Haven/Speakeasy because WASM isn't built in. *If* you're thinking about using Tor Browser, forget about it. But you can use Haven on from a WASM-enabled browser connected to the Tor network through a Socks5 proxy, for example. If you want to hide that you're using Haven, you also need to ensure your browser's DNS requests are hidden and Caddy's traffic is disabled (don't use [OCSP stapling](https://caddyserver.com/docs/caddyfile/options#ocsp-stapling), use `local_certs`, etc.).
+Remember that Tor Browser cannot use Haven/Speakeasy because WASM isn't built in. *If* you're thinking about using Tor Browser with Haven, also forget about it. But you can use Haven on from a WASM-enabled browser connected to the Tor network through a Socks5 proxy, for example.
 
-For .onion domains we'd likely use a self-signed CA and (of course) self-signed host TLS certificate.
+Also, Haven needs to be accessed over HTTPS, which is unrelated to .onion services.
+
+If you want to hide that you're using Haven on your Haven server, you also need to ensure your browser's DNS requests are hidden and server's traffic is disabled.
+
+If you want to minimize clearnet traffic from your server, don't use [OCSP stapling](https://caddyserver.com/docs/caddyfile/options#ocsp-stapling), use `local_certs`, etc. But if you serve Haven on both clearnet and Tor, that's possible but also complicated.
+
+For .onion domains we'd likely use a self-signed CA and a self-signed host TLS certificate.
 
 Maybe a self-generated TLS could contain some data that would prove it was created by a trusted person, but otherwise there's no difference between using HTTPS with a self-signed TLS certificate and HTTPS on Tor.
+
+Since TLS on Tor doesn't make sense (we just need it for Haven), consider enabling `HiddenServiceNonAnonymousMode` which reduces anonymity of your server but improves its performance.
+
+#### Caddy
 
 You could reuse the example for LAN, just change Caddyfile to bind all interfaces including your .onion name, and do not open Internet or LAN firewall ports as access is allowed only through the Tor network. Caddyfile for a Tor Hidden Service would look similar to this:
 
@@ -302,6 +318,17 @@ In your Tor configuration file you may need to set HiddenServicePort (your.adddr
 HiddenServiceVersion 3
 HiddenServicePort 443 127.0.0.1:443
 ```
+
+Find an example in `./tor` directory:
+
+- Haven with Caddy reverse proxy (for local access)
+- Separate Tor and NGINX containers configured to work on Tor and provide Hidden Service
+
+#### Traefik
+
+For Traefik you could try [this](https://traefik.io/blog/simplified-service-deployments-with-traefik-proxy-and-tor/). Again, that you need to add HTTPS to this configuration example and load own TLS certificates.
+
+The guys at Tor have a [recipe](https://community.torproject.org/relay/setup/bridge/docker/) for containerized Tor relay (and here's their [.env](https://gitlab.torproject.org/tpo/anti-censorship/docker-obfs4-bridge/-/raw/main/.env) file) that preserves your Tor relay's identity (which may or may not be what you want). A more recent DIY recipe can be found [here](https://dev.to/nabarun/running-tor-proxy-with-docker-56n9). Alternatively, you can run Tor on the host.
 
 ## Version and other container information
 
