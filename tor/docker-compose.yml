@@ -16,10 +16,6 @@ services:
     entrypoint: ["npm", "run", "start"]
     ports:
       - "3000:3000"
-  nginx:
-    image: nginx:latest
-    volumes:
-      - ./tor-docs:/usr/share/nginx/html
     depends_on:
       - tor
     networks:
@@ -33,7 +29,22 @@ services:
     networks:
       - tor_network
     stop_grace_period: 1m
-
+  s3-server:
+    image: minio/minio:latest
+    container_name: "s3-server"
+    command: server --address "127.0.0.1:59000" --console-address "127.0.0.1:59001" /data
+    ports:
+      - "59000:59000"
+      - "59001:59001"
+    volumes:
+      - ./tor-docs:/data
+    environment: 
+      MINIO_ROOT_USER: 
+      MINIO_ROOT_PASSWORD: 
+      MINIO_SERVER_URL: "https://localhost:59001"
+    depends_on:
+      - tor
+    networks:
+      - tor_network
 networks:
   tor_network:
-        

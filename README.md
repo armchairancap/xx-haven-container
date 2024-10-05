@@ -84,7 +84,7 @@ If you want to run a private instance or build your own, read on.
 
 ### Run Haven from prebuilt image
 
-It is recommended to build your own image from this repository's Dockerfile (see further below), but you may use [Github Container Registry images](ghcr.io/armchairancap/haven:latest) built by me. 
+It is recommended to build your own image from this repository's Dockerfile (see further below), but you may use [Github Container Registry images](https://ghcr.io/armchairancap/haven:latest) built by me. 
 
 Use a service port available on your system and change the first 3000 to another port if you like.
 
