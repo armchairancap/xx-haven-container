@@ -17,7 +17,7 @@
 
 # xx Network Haven (formerly Speakeasy) container image
 
-**NOTE: one of the winning submissions from Hacktoberfest 2024 was an optimized Dockerfile for that you can find [here](https://github.com/xxfoundation/haven/blob/main/Dockerfile). Simply clone the repo and run `docker build .`.** 
+**NOTE: one of the winning submissions from Hacktoberfest 2024 was an optimized Dockerfile for Haven that you can find [here](https://github.com/xxfoundation/haven/blob/main/Dockerfile). Simply clone the repo, change to `haven` directory, and run `docker build .`.** 
 
 ## About Haven
 
