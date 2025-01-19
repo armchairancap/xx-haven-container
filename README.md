@@ -17,15 +17,17 @@
 
 # xx Network Haven (formerly Speakeasy) container image
 
+**NOTE: one of the winning submissions from Hacktoberfest 2024 was an optimized Dockerfile for that you can find [here](https://github.com/xxfoundation/haven/blob/main/Dockerfile). Simply clone the repo and run `docker build .`.** 
+
 ## About Haven
 
-[Haven](https://www.speakeasy.tech) is a privacy-first Web client for xx Network.
+[Haven](https://haven.xx.network) is a privacy-first Web client for xx Network.
 
 It uses WASM and xxDK to access random gateways on the cMix network. It provides unique online identities, quantum-resistant encrypted messaging and other features. See the Web site for more.
 
 ### Haven Web application
 
-A Web server is required to download Haven application code. The site that serves it - such as [https://www.speakeasy.tech](https://www.speakeasy.tech) - may collect client IP addresses (which merely identifies the address as a Haven user or, if compromised, even serve malicious code - unlikely, but not impossible, to happen on the official Haven site).
+A Web server is required to download Haven application code. The site that serves it - such as [https://haven.xx.network](https://haven.xx.network) - may collect client IP addresses (which merely identifies the address as a Haven user or, if compromised, even serve malicious code - unlikely, but not impossible, to happen on the official Haven site).
 
 Haven Web server is not involved in forwarding or encrypting client data: that happens exclusively on the client (in browser).
 
@@ -84,9 +86,9 @@ If you want to run a private instance or build your own, read on.
 
 ### Run Haven from prebuilt image
 
-It is recommended to build your own image from this repository's Dockerfile (see further below), but you may use [Github Container Registry images](https://ghcr.io/armchairancap/haven:latest) built by me. 
+It is recommended to build your own image from the official Dockerfile (as mentioned at the top). 
 
-Use a service port available on your system and change the first 3000 to another port if you like.
+Use a service port available on your system and change the first 3000 to another port if you like. My pre-built image here may be out of date.
 
 ```sh
 docker run -it --rm -p 0.0.0.0:3000:3000 --name haven ghcr.io/armchairancap/haven:latest npm run start
@@ -96,7 +98,7 @@ docker run -it --rm -p 0.0.0.0:3000:3000 --name haven ghcr.io/armchairancap/have
 That should start Haven container and expose its service at [http://localhost:3000](http://localhost:3000) (not *https*).
 
 ```sh
-> speakeasy-web@0.3.4 start
+> haven-web@0.3.22 start
 > next start 
 
 ready - started server on 0.0.0.0:3000, url: http://localhost:3000
@@ -114,29 +116,27 @@ Although you can now access Haven, you **still need a reverse HTTPS proxy in fro
 
 ### Build and run own image
 
-The source is over 1 GB large and the image over 1 GB. You may need more than 5 GB of free disk space to build.
+You may need more than 2-3 GB of free disk space to build it.
 
-The Speakeasy source code repository has its own Dockerfile. Clone the source code, and run `docker build .` to build it. 
+The Haven source code repository has its own Dockerfile. Clone the source code, and run `docker build .` to build it. 
 
 After cloning the repo, go to its directory and build.
 
 ```sh
-git clone https://git.xx.network/elixxir/speakeasy-web && cd speakeasy-web
+git clone https://github.com/xxfoundation/haven/ && cd haven
 docker build -t haven:latest .
 docker run -it --rm -p 0.0.0.0:3000:3000 --name haven haven:latest npm run start
 ```
 
-Alternatively, you may reference this older [Dockerfile](https://github.com/armchairancap/xx-haven-container/commit/966c6293592af093f40065e5c5c34c0100ddb833#diff-dd2c0eb6ea5cfc6c4bd4eac30934e2d5746747af48fef6da689e85b752f39557) that I used to use before, but keep in mind that it was hard-coded to use port 80 (instead of the common 3000), so adjust it to work on port 3000 (`docker run -it --rm -p 0.0.0.0:3000:80 ...`) (or adjust configs below to forward to haven-web on port 80). Of course, you may also change it any way you want.
+Now you should be able to see the Haven Web server's home page when you visit http://localhost:3000. You should still **use a reverse HTTPS proxy** in front of it in order to use it.
 
-Now you should be able to see the Haven Web server's home page when you visit http://localhost:3000. You still **need a reverse HTTPS proxy** in front of it in order to use it.
-
-Once you get everything (including HTTPS reverse proxy) in order, you may add `-d` to `docker run` to run the container in the background.
+Once you get everything (including HTTPS reverse proxy) in order, you may add `-d` to `docker run` or `docker compose up haven` to run the container in the background.
 
 ## Deploy a reverse HTTPS proxy
 
-Without HTTPS in front of Haven you will see the home page, but Haven will not work for messaging. You need to access Haven through HTTPS.
+Without HTTPS in front of Haven you will see the welcome page.
 
-There is nothing Haven-specific about this, just remember to forward port on your your HTTPS proxy to whatever port you chose here (e.g. 3000).
+If you use HTTPS, remember to access the TLS port and from there forward to Haven (e.g. port 3000).
 
 Some popular approaches:
 
@@ -288,7 +288,7 @@ To use Traefik with self-issued TLS on localhost, simply replace the haven-web F
 
 ### Haven as Hidden Service on the Tor network
 
-Remember that Tor Browser cannot use Haven/Speakeasy because WASM isn't built in. *If* you're thinking about using Tor Browser with Haven, also forget about it. But you can use Haven on from a WASM-enabled browser connected to the Tor network through a Socks5 proxy, for example.
+Remember that Tor Browser cannot use Haven because WASM isn't built in. *If* you're thinking about using Tor Browser with Haven, also forget about it. But you can use Haven on from a WASM-enabled browser connected to the Tor network through a Socks5 proxy, for example.
 
 Also, Haven needs to be accessed over HTTPS, which is unrelated to .onion services.
 
@@ -337,11 +337,9 @@ Images tagged `:latest` are built from the upstream repository's `main` branch. 
 - x86_64: `haven:latest`
 - ARM64 build: `haven-arm64:latest`
 
-My Docker images may get out of date, so it is recommended to build your own version (which comes from [here](https://git.xx.network/elixxir/speakeasy-web)) for proper production use. There's a working Dockerfile in the source code repository. Or see the older Docker example I used before.
+My Docker images get out of date, so it is recommended to build your own version (which comes from [here](https://github.com/xxfoundation/haven/)) for safest production use.
 
-The upstream repository may have some vulnerabilities which I haven't attempted to fix (why, because I could inadvertently introduce new ones). Haven executes on the client and it is read-only on the server, so the risk of NPM package vulnerabilities should be extremely low - especially if you run own instance.
-
-What I did modify is packages*.json and node.config.json to decrease the size of my Haven container image compared to what you'd get from Dockerfile from the source code repository. I also ran `npm audit fix` to auto-fix some vulnerabilities that NPM can fix on its own, although that probably doesn't help in any way.
+The upstream repository may have some vulnerabilities but Haven executes on the client and it is served as read-only from the server, so the risk of NPM package vulnerabilities should be very low - especially if you host your own instance.
 
 ## License
 
